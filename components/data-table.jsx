@@ -67,6 +67,7 @@ import {
   TabsContent,
 
 } from "@/components/ui/tabs"
+import { EditRowDialog } from "@/components/dialog-edit-row"
 
 function DragHandle({
   id
@@ -117,7 +118,9 @@ function DraggableRow({
 export function DataTable({
   data: initialData,
   columns,
-  addButtonTitle
+  addButtonTitle,
+  addDialogColumns,
+  onAdd
 }) {
   const [data, setData] = React.useState(() => initialData)
   const [rowSelection, setRowSelection] = React.useState({})
@@ -175,6 +178,13 @@ export function DataTable({
     }
   }
 
+  const emptyRow = addDialogColumns
+    ? addDialogColumns.reduce((acc, col) => {
+        if (col.accessorKey && col.accessorKey !== "id") acc[col.accessorKey] = "";
+        return acc;
+      }, {})
+    : {};
+
   return (
     <Tabs defaultValue="outline" className="pt-5 w-full flex-col justify-start gap-6">
       <div className="flex items-center justify-between px-4 lg:px-6">
@@ -182,10 +192,14 @@ export function DataTable({
           View
         </Label>
         <div className="flex items-center gap-2 ml-auto">
-          <Button variant="outline" size="sm">
-            <IconPlus />
-            <span className="hidden lg:inline">{addButtonTitle}</span>
-          </Button>
+          {addButtonTitle && addDialogColumns && (
+            <EditRowDialog columns={addDialogColumns} rowData={emptyRow} onSave={onAdd}>
+              <Button variant="outline">
+                <IconPlus />
+                {addButtonTitle}
+              </Button>
+            </EditRowDialog>
+          )}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="sm">

@@ -3,9 +3,10 @@ import React from "react";
 import { DataTable } from "@/components/data-table";
 import data from "./data.json";
 import { Badge } from "@/components/ui/badge";
-import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { IconDotsVertical } from "@tabler/icons-react";
+import { EditRowDialog } from "@/components/dialog-edit-row";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 const columns = [
   { accessorKey: 'id', header: 'ID' },
@@ -26,19 +27,33 @@ const columns = [
   {
     id: "actions",
     header: "",
-    cell: ({ row }) => (
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon">
-            <IconDotsVertical />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuItem onClick={() => alert(`Edit id: ${row.original.id}`)}>Edit</DropdownMenuItem>
-          <DropdownMenuItem onClick={() => alert(`Delete id: ${row.original.id}`)}>Delete</DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    ),
+    cell: ({ row }) => {
+      const [open, setOpen] = React.useState(false);
+      return (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon">
+              <IconDotsVertical />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => setOpen(true)}>
+              Update
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => alert(`Delete: ${row.original.id}`)} className="text-red-600">
+              Delete
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+          <EditRowDialog
+            columns={columns}
+            rowData={row.original}
+            onSave={(updated) => alert(JSON.stringify(updated))}
+            open={open}
+            onOpenChange={setOpen}
+          />
+        </DropdownMenu>
+      );
+    },
     enableSorting: false,
     enableHiding: false,
   }
@@ -47,7 +62,13 @@ const columns = [
 export default function Page() {
   return (
     <div>
-      <DataTable data={data} columns={columns} addButtonTitle={'Add Company'} />
+      <DataTable
+        data={data}
+        columns={columns}
+        addButtonTitle="Add Company"
+        addDialogColumns={columns}
+        onAdd={(created) => alert(JSON.stringify(created))}
+      />
     </div>
   );
 }
