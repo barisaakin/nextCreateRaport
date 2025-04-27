@@ -3,17 +3,18 @@ import React, { useState } from "react";
 import { arrayMove } from "@dnd-kit/sortable";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Check, Heading, Text, List, Hash, Calendar, Image as IconImage, Minus, Code2 } from "lucide-react";
 
 const FIELD_TYPES = [
-  { type: "text", label: "Text" },
-  { type: "heading", label: "Heading" },
-  { type: "textarea", label: "Textarea" },
-  { type: "number", label: "Number" },
-  { type: "checkbox", label: "Checkbox" },
-  { type: "date", label: "Date" },
-  { type: "image", label: "Image" },
-  { type: "divider", label: "Divider" },
-  { type: "html", label: "HTML" },
+  { type: "text", label: "Text", icon: <Text className="w-4 h-4" /> },
+  { type: "heading", label: "Heading", icon: <Heading className="w-4 h-4" /> },
+  { type: "textarea", label: "Textarea", icon: <List className="w-4 h-4" /> },
+  { type: "number", label: "Number", icon: <Hash className="w-4 h-4" /> },
+  { type: "checkbox", label: "Checkbox", icon: <Check className="w-4 h-4" /> },
+  { type: "date", label: "Date", icon: <Calendar className="w-4 h-4" /> },
+  { type: "image", label: "Image", icon: <IconImage className="w-4 h-4" /> },
+  { type: "divider", label: "Divider", icon: <Minus className="w-4 h-4" /> },
+  { type: "html", label: "HTML", icon: <Code2 className="w-4 h-4" /> },
 ];
 
 function FieldPreview({ field }) {
@@ -97,13 +98,15 @@ export default function ReportFormatBuilder() {
   };
 
   return (
-    <div className="flex h-[80vh] gap-4">
+    <div className="flex h-full  gap-4 bg-gradient-to-br from-white to-muted/50">
       {/* Sol Panel */}
-      <div className="w-56 border-r p-4 flex flex-col gap-4 bg-muted/30">
-        <div className="font-semibold mb-2">Alan Ekle</div>
-        <div className="flex flex-col gap-2">
+      <div className="w-64 min-w-56 border-r p-6 flex flex-col gap-6 bg-white rounded-xl shadow-md mt-6 ml-4 h-[90vh] self-start sticky top-6">
+        <div className="flex items-center gap-2 text-lg font-bold mb-2">
+          <span>Alan Ekle</span>
+        </div>
+        <div className="flex flex-col gap-3">
           {FIELD_TYPES.map(ft => (
-            <Button key={ft.type} variant="outline" onClick={() => {
+            <Button key={ft.type} variant="outline" className="flex items-center gap-2 py-3 text-base rounded-lg shadow-sm hover:bg-primary/10 transition-all" onClick={() => {
               const type = ft.type;
               const newField = {
                 id: Date.now() + Math.random(),
@@ -125,36 +128,36 @@ export default function ReportFormatBuilder() {
               };
               setFields([...fields, newField]);
               setSelected(newField.id);
-            }}>{ft.label}</Button>
+            }}>{ft.icon} {ft.label}</Button>
           ))}
         </div>
       </div>
       {/* Orta Builder */}
-      <div className="flex-1 flex flex-col p-4 gap-2">
-        <div className="flex gap-2 mb-4">
-          <Input placeholder="Format Adı" value={formatName} onChange={e => setFormatName(e.target.value)} className="w-64" />
-          <Button onClick={handleSave} variant="default">Kaydet</Button>
+      <div className="flex-1 flex flex-col p-8 gap-4 items-center overflow-y-auto max-h-[90vh] min-h-[90vh]">
+        <div className="flex gap-4 mb-6 items-center w-full max-w-2xl mx-auto">
+          <Input placeholder="Format Adı" value={formatName} onChange={e => setFormatName(e.target.value)} className="w-64 rounded-lg" />
+          <Button onClick={handleSave} variant="default" className="rounded-lg px-6 py-2 text-base">Kaydet</Button>
         </div>
-        <div className="flex flex-col gap-3">
-          {fields.length === 0 && <div className="text-muted-foreground text-center py-8">Alan ekleyin...</div>}
+        <div className="flex flex-col gap-6 w-full max-w-2xl mx-auto">
+          {fields.length === 0 && <div className="text-muted-foreground text-center py-24 text-xl font-semibold rounded-lg border bg-white/70">Alan ekleyin…</div>}
           {fields.map((field, idx) => (
             <div
               key={field.id}
-              className={`border rounded-lg bg-white shadow-sm flex flex-col gap-2 p-3 relative group ${selected === field.id ? "ring-2 ring-primary" : ""}`}
+              className={`border rounded-xl bg-white shadow-md flex flex-col gap-2 p-4 relative group transition-all hover:shadow-lg ${selected === field.id ? "ring-2 ring-primary" : ""}`}
               onClick={() => setSelected(field.id)}
-              style={{ opacity: selected === field.id ? 1 : 0.95, cursor: 'pointer' }}
+              style={{ opacity: selected === field.id ? 1 : 0.97, cursor: 'pointer' }}
               data-id={field.id}
             >
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-muted-foreground uppercase tracking-wider">{field.type}</span>
-                <span className="text-xs text-muted-foreground">{field.label}</span>
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-xs text-muted-foreground uppercase tracking-wider">{FIELD_TYPES.find(t => t.type === field.type)?.icon}</span>
+                <span className="text-xs text-muted-foreground font-semibold">{field.label}</span>
                 <div className="ml-auto flex gap-1">
-                  {idx > 0 && <Button size="icon" variant="ghost" onClick={e => {e.stopPropagation(); handleMoveField(idx, idx-1);}}>↑</Button>}
-                  {idx < fields.length-1 && <Button size="icon" variant="ghost" onClick={e => {e.stopPropagation(); handleMoveField(idx, idx+1);}}>↓</Button>}
-                  <Button size="icon" variant="destructive" onClick={e => {e.stopPropagation(); handleDeleteField(field.id);}}>✕</Button>
+                  {idx > 0 && <Button size="icon" variant="ghost" className="rounded-full" onClick={e => {e.stopPropagation(); handleMoveField(idx, idx-1);}}>↑</Button>}
+                  {idx < fields.length-1 && <Button size="icon" variant="ghost" className="rounded-full" onClick={e => {e.stopPropagation(); handleMoveField(idx, idx+1);}}>↓</Button>}
+                  <Button size="icon" variant="destructive" className="rounded-full" onClick={e => {e.stopPropagation(); handleDeleteField(field.id);}}>✕</Button>
                 </div>
               </div>
-              <div className="p-2 bg-muted/50 rounded">
+              <div className="p-3 bg-muted/40 rounded-lg">
                 <FieldPreview field={field} />
               </div>
             </div>
@@ -162,10 +165,10 @@ export default function ReportFormatBuilder() {
         </div>
       </div>
       {/* Sağ Panel */}
-      <div className="w-72 border-l p-4 bg-muted/30 overflow-auto">
-        <div className="font-semibold mb-2">Alan Özellikleri</div>
+      <div className="w-80 min-w-72 border-l p-6 bg-white rounded-xl shadow-md mt-6 mr-4 h-[90vh] self-start sticky top-6 flex flex-col">
+        <div className="text-lg font-bold mb-4">Alan Özellikleri</div>
         {selectedField ? (
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-4 flex-1">
             {/* Label */}
             {selectedField.type !== "divider" && selectedField.type !== "html" && (
               <Input label="Label" value={selectedField.label} onChange={e => handleFieldChange("label", e.target.value)} />
@@ -271,9 +274,11 @@ export default function ReportFormatBuilder() {
                 <textarea className="w-full border rounded p-2 min-h-[80px]" value={selectedField.html} onChange={e => handleFieldChange("html", e.target.value)} placeholder="<b>Örnek HTML</b>" />
               </div>
             )}
-            <Button variant="destructive" onClick={() => handleDeleteField(selectedField.id)}>Alanı Sil</Button>
+            <div className="mt-auto pt-4">
+              <Button variant="destructive" className="w-full rounded-lg" onClick={() => handleDeleteField(selectedField.id)}>Alanı Sil</Button>
+            </div>
           </div>
-        ) : <div className="text-muted-foreground text-sm">Bir alan seçin...</div>}
+        ) : <div className="text-muted-foreground text-base">Bir alan seçin…</div>}
       </div>
     </div>
   );
