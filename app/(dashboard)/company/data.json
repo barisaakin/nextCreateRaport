@@ -1,0 +1,157 @@
+[
+    {
+        "id": 1,
+        "name": "Company 1",
+        "companyManager": "Barış Akın",
+        "phoneCompany": "+905555555555",
+        "emailCompany": "barisakinn@gmail.com",
+        "createdAt": "2021-01-01",
+        "updatedAt": "2021-01-01"
+    },
+    {
+        "id": 2,
+        "name": "Company 2",
+        "companyManager": "Barış Akın",
+        "phoneCompany": "+905555555555",
+        "emailCompany": "barisakinn@gmail.com",
+        "createdAt": "2021-01-01",
+        "updatedAt": "2021-01-01"
+    },
+    {
+        "id": 3,
+        "name": "Company 1",
+        "companyManager": "Barış Akın",
+        "phoneCompany": "+905555555555",
+        "emailCompany": "barisakinn@gmail.com",
+        "createdAt": "2021-01-01",
+        "updatedAt": "2021-01-01"
+    },
+    {
+        "id": 4,
+        "name": "Company 2",
+        "companyManager": "Barış Akın",
+        "phoneCompany": "+905555555555",
+        "emailCompany": "barisakinn@gmail.com",
+        "createdAt": "2021-01-01",
+        "updatedAt": "2021-01-01"
+    },    {
+        "id": 5,
+        "name": "Company 1",
+        "companyManager": "Barış Akın",
+        "phoneCompany": "+905555555555",
+        "emailCompany": "barisakinn@gmail.com",
+        "createdAt": "2021-01-01",
+        "updatedAt": "2021-01-01"
+    },
+    {
+        "id": 6,
+        "name": "Company 2",
+        "companyManager": "Barış Akın",
+        "phoneCompany": "+905555555555",
+        "emailCompany": "barisakinn@gmail.com",
+        "createdAt": "2021-01-01",
+        "updatedAt": "2021-01-01"
+    },    {
+        "id": 7,
+        "name": "Company 1",
+        "companyManager": "Barış Akın",
+        "phoneCompany": "+905555555555",
+        "emailCompany": "barisakinn@gmail.com",
+        "createdAt": "2021-01-01",
+        "updatedAt": "2021-01-01"
+    },
+    {
+        "id": 8,
+        "name": "Company 2",
+        "companyManager": "Barış Akın",
+        "phoneCompany": "+905555555555",
+        "emailCompany": "barisakinn@gmail.com",
+        "createdAt": "2021-01-01",
+        "updatedAt": "2021-01-01"
+    },    {
+        "id": 9,
+        "name": "Company 1",
+        "companyManager": "Barış Akın",
+        "phoneCompany": "+905555555555",
+        "emailCompany": "barisakinn@gmail.com",
+        "createdAt": "2021-01-01",
+        "updatedAt": "2021-01-01"
+    },
+    {
+        "id": 10,
+        "name": "Company 2",
+        "companyManager": "Barış Akın",
+        "phoneCompany": "+905555555555",
+        "emailCompany": "barisakinn@gmail.com",
+        "createdAt": "2021-01-01",
+        "updatedAt": "2021-01-01"
+    },    {
+        "id": 19,
+        "name": "Company 1",
+        "companyManager": "Barış Akın",
+        "phoneCompany": "+905555555555",
+        "emailCompany": "barisakinn@gmail.com",
+        "createdAt": "2021-01-01",
+        "updatedAt": "2021-01-01"
+    },
+    {
+        "id": 11,
+        "name": "Company 2",
+        "companyManager": "Barış Akın",
+        "phoneCompany": "+905555555555",
+        "emailCompany": "barisakinn@gmail.com",
+        "createdAt": "2021-01-01",
+        "updatedAt": "2021-01-01"
+    },    {
+        "id": 12,
+        "name": "Company 1",
+        "companyManager": "Barış Akın",
+        "phoneCompany": "+905555555555",
+        "emailCompany": "barisakinn@gmail.com",
+        "createdAt": "2021-01-01",
+        "updatedAt": "2021-01-01"
+    },
+    {
+        "id": 13,
+        "name": "Company 2",
+        "companyManager": "Barış Akın",
+        "phoneCompany": "+905555555555",
+        "emailCompany": "barisakinn@gmail.com",
+        "createdAt": "2021-01-01",
+        "updatedAt": "2021-01-01"
+    },    {
+        "id": 14,
+        "name": "Company 1",
+        "companyManager": "Barış Akın",
+        "phoneCompany": "+905555555555",
+        "emailCompany": "barisakinn@gmail.com",
+        "createdAt": "2021-01-01",
+        "updatedAt": "2021-01-01"
+    },
+    {
+        "id": 15,
+        "name": "Company 2",
+        "companyManager": "Barış Akın",
+        "phoneCompany": "+905555555555",
+        "emailCompany": "barisakinn@gmail.com",
+        "createdAt": "2021-01-01",
+        "updatedAt": "2021-01-01"
+    },    {
+        "id": 16,
+        "name": "Company 1",
+        "companyManager": "Barış Akın",
+        "phoneCompany": "+905555555555",
+        "emailCompany": "barisakinn@gmail.com",
+        "createdAt": "2021-01-01",
+        "updatedAt": "2021-01-01"
+    },
+    {
+        "id": 17,
+        "name": "Company 2",
+        "companyManager": "Barış Akın",
+        "phoneCompany": "+905555555555",
+        "emailCompany": "barisakinn@gmail.com",
+        "createdAt": "2021-01-01",
+        "updatedAt": "2021-01-01"
+    }
+]

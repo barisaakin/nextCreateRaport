@@ -1,0 +1,50 @@
+[
+  {
+    "id": 1,
+    "firstName": "Barış",
+    "lastName": "Akın",
+    "companyName": "Akın Teknoloji",
+    "email": "barisakin@gmail.com",
+    "role": "Admin",
+    "isActive": true
+  },
+  {
+    "id": 2,
+    "firstName": "Ayşe",
+    "lastName": "Yılmaz",
+    "companyName": "Yılmaz Yazılım",
+    "email": "ayse.yilmaz@example.com",
+    "role": "User",
+    "isActive": true
+
+  },
+  {
+    "id": 3,
+    "firstName": "Mehmet",
+    "lastName": "Demir",
+    "companyName": "Demir Bilişim",
+    "email": "mehmet.demir@example.com",
+    "role": "Editor",
+    "isActive": true
+
+  },
+  {
+    "id": 4,
+    "firstName": "Elif",
+    "lastName": "Kaya",
+    "companyName": "Kaya Grup",
+    "email": "elif.kaya@example.com",
+    "role": "User",
+    "isActive": true
+
+  },
+  {
+    "id": 5,
+    "firstName": "Can",
+    "lastName": "Çelik",
+    "companyName": "Çelik Solutions",
+    "email": "can.celik@example.com",
+    "role": "Admin",
+    "isActive": false
+  }
+] 
