@@ -61,8 +61,9 @@ export default function Page({ params }) {
     const pageWidth = pdf.internal.pageSize.getWidth();
     let y = padding;
     let x = padding;
-    const space = 10;
+    const space = 5;
     const lineHeight = 20;
+    const paragraphIndent = 20;
 
     pdf.setFontSize(16);
 
@@ -136,6 +137,14 @@ export default function Page({ params }) {
           // Satırda kalan boşluğa göre split et
           let remainingWidth = pageWidth - padding - x;
           let lines = pdf.splitTextToSize(displayValue, remainingWidth);
+
+          // Textarea için özel işlem
+          if (field.type === "textarea") {
+            y += lineHeight; // Yeni satıra geç
+            x = padding + paragraphIndent; // Paragraf boşluğu ekle
+            remainingWidth = pageWidth - padding - paragraphIndent; // Kalan genişliği güncelle
+            lines = pdf.splitTextToSize(displayValue, remainingWidth);
+          }
 
           for (let l = 0; l < lines.length; l++) {
             const line = lines[l];
