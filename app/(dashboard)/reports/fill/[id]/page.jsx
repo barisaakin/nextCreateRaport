@@ -4,6 +4,33 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import jsPDF from "jspdf";
+import 'jspdf-autotable';
+
+// Türkçe karakter dönüşüm tablosu
+const turkishCharMap = {
+  'ç': 'c', 'Ç': 'C',
+  'ğ': 'g', 'Ğ': 'G',
+  'ı': 'i', 'İ': 'I',
+  'ö': 'o', 'Ö': 'O',
+  'ş': 's', 'Ş': 'S',
+  'ü': 'u', 'Ü': 'U',
+  'â': 'a', 'Â': 'A',
+  'î': 'i', 'Î': 'I',
+  'û': 'u', 'Û': 'U'
+};
+
+// Türkçe karakterleri dönüştüren fonksiyon
+const convertTurkishChars = (text) => {
+  return text.replace(/[çÇğĞıİöÖşŞüÜâÂîÎûÛ]/g, char => turkishCharMap[char] || char);
+};
+
+// Türkçe karakterleri destekleyen font
+const turkishFont = {
+  normal: 'https://fonts.gstatic.com/s/roboto/v30/KFOmCnqEu92Fr1Mu4mxK.ttf',
+  bold: 'https://fonts.gstatic.com/s/roboto/v30/KFOlCnqEu92Fr1MmWUlfBBc4.ttf',
+  italics: 'https://fonts.gstatic.com/s/roboto/v30/KFOkCnqEu92Fr1Mu51xIIzIXKMny.ttf',
+  bolditalics: 'https://fonts.gstatic.com/s/roboto/v30/KFOjCnqEu92Fr1Mu51TzBic6CsI4.ttf'
+};
 
 export default function Page({ params }) {
   const router = useRouter();
@@ -56,7 +83,15 @@ export default function Page({ params }) {
 
   const handleDownloadPDF = async () => {
     if (!format) return;
-    const pdf = new jsPDF({ unit: "pt", format: "a4" });
+    
+    const pdf = new jsPDF({
+      orientation: 'portrait',
+      unit: 'pt',
+      format: 'a4',
+      putOnlyUsedFonts: true,
+      floatPrecision: 16
+    });
+
     const padding = 40;
     const pageWidth = pdf.internal.pageSize.getWidth();
     let y = padding;
@@ -65,7 +100,9 @@ export default function Page({ params }) {
     const lineHeight = 20;
     const paragraphIndent = 20;
 
-    pdf.setFontSize(16);
+    // Font ayarları
+    pdf.setFont('helvetica', 'normal');
+    pdf.setFontSize(12);
 
     format.pages.forEach(page => {
       x = padding;
@@ -87,11 +124,11 @@ export default function Page({ params }) {
             y += lineHeight;
             x = padding;
           }
-          pdf.setFont(undefined, "bold");
+          pdf.setFont('helvetica', 'bold');
           pdf.setFontSize(18);
-          pdf.text(String(value), pageWidth / 2, y, { align: "center" });
-          pdf.setFont(undefined, "normal");
-          pdf.setFontSize(16);
+          pdf.text(convertTurkishChars(String(value)), pageWidth / 2, y, { align: "center" });
+          pdf.setFont('helvetica', 'normal');
+          pdf.setFontSize(12);
           y += 32;
           x = padding;
           i++;
@@ -109,7 +146,8 @@ export default function Page({ params }) {
 
         // Checkbox
         if (field.type === "checkbox") {
-          const fieldWidth = 18 + pdf.getTextWidth(String(value.content || value)) + space;
+          const checkboxValue = typeof value === 'object' ? value.content : value;
+          const fieldWidth = 18 + pdf.getTextWidth(convertTurkishChars(String(checkboxValue))) + space;
           if (x + fieldWidth > pageWidth - padding) {
             y += lineHeight;
             x = padding;
@@ -122,7 +160,7 @@ export default function Page({ params }) {
             pdf.line(x + 7, y - 2, x + 12, y - 12);
             pdf.setLineWidth(1);
           }
-          pdf.text(String(value.content || value), x + 18, y - 2);
+          pdf.text(convertTurkishChars(String(checkboxValue)), x + 18, y - 2);
           x += fieldWidth;
           i++;
           continue;
@@ -134,6 +172,10 @@ export default function Page({ params }) {
           if (field.type === "date" && value) {
             displayValue = value.length > 10 ? value.slice(0, 10) : value;
           }
+          
+          // Türkçe karakterleri dönüştür
+          displayValue = convertTurkishChars(displayValue);
+          
           // Satırda kalan boşluğa göre split et
           let remainingWidth = pageWidth - padding - x;
           let lines = pdf.splitTextToSize(displayValue, remainingWidth);
@@ -169,7 +211,7 @@ export default function Page({ params }) {
       x = padding;
     });
 
-    pdf.save(`${format?.name || "rapor"}.pdf`);
+    pdf.save(`${convertTurkishChars(format?.name || "rapor")}.pdf`);
   };
 
   if (!format) {
