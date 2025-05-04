@@ -183,7 +183,7 @@ export default function Page({ params }) {
           // Textarea için özel işlem
           if (field.type === "textarea") {
             y += lineHeight; // Yeni satıra geç
-            x = padding + paragraphIndent; // Paragraf boşluğu ekle
+            x = padding ; // Paragraf boşluğu ekle
             remainingWidth = pageWidth - padding - paragraphIndent; // Kalan genişliği güncelle
             lines = pdf.splitTextToSize(displayValue, remainingWidth);
           }
