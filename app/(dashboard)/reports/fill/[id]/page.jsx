@@ -69,7 +69,6 @@ export default function Page({ params }) {
       const fields = page.fields;
       let x = padding;
       let maxHeightInRow = 0;
-
       let i = 0;
       while (i < fields.length) {
         const field = fields[i];
@@ -129,47 +128,20 @@ export default function Page({ params }) {
           continue;
         }
 
-        // Text, Number, Date, Textarea için row gruplama
+        // Text, Number, Date, Textarea her biri alt alta gelsin
         if (["text", "number", "date", "textarea"].includes(field.type)) {
-          // Sadece bir field'ı ekle, eğer sığmazsa yeni satıra geç
-          let fieldWidth = 0;
           let fieldHeight = rowGap;
           let lines = [];
           if (field.type === "textarea") {
             lines = pdf.splitTextToSize(value, maxContentWidth);
-            fieldWidth = pdf.getTextWidth(lines[0] || '') + 10;
             fieldHeight = lines.length * 20 + 10;
-          } else {
-            fieldWidth = pdf.getTextWidth(String(value)) + 10;
-          }
-
-          // Eğer bu field eklenince satır aşılacaksa, alt satıra geç
-          if (x + fieldWidth > pageWidth - padding) {
-            y += maxHeightInRow || rowGap;
-            x = padding;
-            maxHeightInRow = 0;
-          }
-
-          // Field'ı yaz
-          if (field.type === "textarea") {
             pdf.text(lines, x, y);
           } else {
             pdf.text(String(value), x, y);
           }
-          x += fieldWidth;
-          if (fieldHeight > maxHeightInRow) maxHeightInRow = fieldHeight;
-
-          // Eğer bir sonraki field number/date ise ve bu satırda yer yoksa, yeni satıra geç
-          if (
-            i + 1 < fields.length &&
-            ["number", "date"].includes(fields[i].type) &&
-            x + pdf.getTextWidth(String(values[fields[i + 1].id] || "")) + 10 > pageWidth - padding
-          ) {
-            y += maxHeightInRow || rowGap;
-            x = padding;
-            maxHeightInRow = 0;
-          }
-
+          y += fieldHeight;
+          x = padding;
+          maxHeightInRow = 0;
           i++;
           continue;
         }
@@ -203,119 +175,81 @@ export default function Page({ params }) {
           <div key={page.id} className="bg-white rounded-lg border p-6" style={{padding: 24}}>
             <h2 className="text-xl font-semibold mb-4">{page.name}</h2>
             <div className="grid gap-4">
-              {/* Alanları gruplayarak render et */}
-              {(() => {
-                const fields = page.fields;
-                const rows = [];
-                let i = 0;
-                while (i < fields.length) {
-                  const field = fields[i];
-                  // Eğer text/number/date/textarea ise ve bir sonraki de aynı gruptansa yan yana göster
-                  if (["text", "number", "date", "textarea"].includes(field.type)) {
-                    const group = [field];
-                    let j = i + 1;
-                    while (j < fields.length && ["text", "number", "date", "textarea"].includes(fields[j].type)) {
-                      group.push(fields[j]);
-                      j++;
-                    }
-                    rows.push(
-                      <div key={field.id + "-row"} className="flex gap-4">
-                        {group.map(f => {
-                          const value = values[f.id] || '';
-                          if (f.type === "text") {
-                            return (
-                              <div key={f.id} className="flex flex-col gap-2 flex-1">
-                                <label className="text-sm font-medium">{f.label}</label>
-                                <Input
-                                  value={value}
-                                  onChange={e => handleValueChange(f.id, e.target.value)}
-                                  placeholder={f.label}
-                                />
-                              </div>
-                            );
-                          }
-                          if (f.type === "number") {
-                            return (
-                              <div key={f.id} className="flex flex-col gap-2 flex-1">
-                                <label className="text-sm font-medium">{f.label}</label>
-                                <Input
-                                  type="number"
-                                  value={value}
-                                  onChange={e => handleValueChange(f.id, e.target.value)}
-                                  placeholder={f.label}
-                                />
-                              </div>
-                            );
-                          }
-                          if (f.type === "date") {
-                            return (
-                              <div key={f.id} className="flex flex-col gap-2 flex-1">
-                                <label className="text-sm font-medium">{f.label}</label>
-                                <Input
-                                  type="date"
-                                  value={value}
-                                  onChange={e => handleValueChange(f.id, e.target.value)}
-                                />
-                              </div>
-                            );
-                          }
-                          if (f.type === "textarea") {
-                            return (
-                              <div key={f.id} className="flex flex-col gap-2 flex-1">
-                                <label className="text-sm font-medium">{f.label}</label>
-                                <textarea
-                                  value={value}
-                                  onChange={e => handleValueChange(f.id, e.target.value)}
-                                  className="w-full border rounded p-2 min-h-[100px]"
-                                  placeholder={f.label}
-                                />
-                              </div>
-                            );
-                          }
-                          return null;
-                        })}
-                      </div>
-                    );
-                    i = i + group.length;
-                    continue;
-                  }
-                  // Diğer alanlar (ör: heading, checkbox, divider)
-                  if (field.type === "heading") {
-                    rows.push(
-                      <div key={field.id} className="flex flex-col gap-2">
-                        <label className="text-sm font-medium">{field.label}</label>
+              {/* Alanları alt alta render et */}
+              {page.fields.map(field => {
+                const value = values[field.id] || '';
+                if (["text", "number", "date", "textarea"].includes(field.type)) {
+                  return (
+                    <div key={field.id} className="flex flex-col gap-2">
+                      <label className="text-sm font-medium">{field.label}</label>
+                      {field.type === "text" && (
                         <Input
-                          value={values[field.id] || ''}
+                          value={value}
                           onChange={e => handleValueChange(field.id, e.target.value)}
                           placeholder={field.label}
-                          className="text-xl font-bold"
                         />
-                      </div>
-                    );
-                  } else if (field.type === "checkbox") {
-                    const value = values[field.id] || { checked: false, content: '' };
-                    rows.push(
-                      <div key={field.id} className="flex items-center gap-2">
-                        <input
-                          type="checkbox"
-                          checked={value.checked || false}
-                          onChange={e => handleValueChange(field.id, { ...value, checked: e.target.checked })}
-                        />
+                      )}
+                      {field.type === "number" && (
                         <Input
-                          value={value.content || ''}
-                          onChange={e => handleValueChange(field.id, { ...value, content: e.target.value })}
-                          placeholder="Checkbox içeriği"
-                          className="flex-1"
+                          type="number"
+                          value={value}
+                          onChange={e => handleValueChange(field.id, e.target.value)}
+                          placeholder={field.label}
                         />
-                      </div>
-                    );
-                  } else if (field.type === "divider") {
-                    rows.push(<hr key={field.id} className="my-4" />);
-                  }
-                  i++;
+                      )}
+                      {field.type === "date" && (
+                        <Input
+                          type="date"
+                          value={value}
+                          onChange={e => handleValueChange(field.id, e.target.value)}
+                        />
+                      )}
+                      {field.type === "textarea" && (
+                        <textarea
+                          value={value}
+                          onChange={e => handleValueChange(field.id, e.target.value)}
+                          className="w-full border rounded p-2 min-h-[100px]"
+                          placeholder={field.label}
+                        />
+                      )}
+                    </div>
+                  );
                 }
-                return rows;
-              })()}
+                // Diğer field tipleri (heading, checkbox, divider vs) için mevcut renderı koru
+                if (field.type === "heading") {
+                  return (
+                    <div key={field.id} className="flex flex-col gap-2">
+                      <label className="text-sm font-medium">{field.label}</label>
+                      <Input
+                        value={values[field.id] || ''}
+                        onChange={e => handleValueChange(field.id, e.target.value)}
+                        placeholder={field.label}
+                        className="text-xl font-bold"
+                      />
+                    </div>
+                  );
+                } else if (field.type === "checkbox") {
+                  const checkboxValue = values[field.id] || { checked: false, content: '' };
+                  return (
+                    <div key={field.id} className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={checkboxValue.checked || false}
+                        onChange={e => handleValueChange(field.id, { ...checkboxValue, checked: e.target.checked })}
+                      />
+                      <Input
+                        value={checkboxValue.content || ''}
+                        onChange={e => handleValueChange(field.id, { ...checkboxValue, content: e.target.value })}
+                        placeholder="Checkbox içeriği"
+                        className="flex-1"
+                      />
+                    </div>
+                  );
+                } else if (field.type === "divider") {
+                  return <hr key={field.id} className="my-4" />;
+                }
+                return null;
+              })}
             </div>
           </div>
         ))}
