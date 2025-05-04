@@ -110,12 +110,24 @@ export default function Page({ params }) {
 
       let fields = page.fields;
       let i = 0;
+      let shouldMoveToNextLine = false;
       while (i < fields.length) {
         const field = fields[i];
         let value = values[field.id];
         if (!value || (typeof value === "string" && value.trim() === "")) {
           i++;
           continue;
+        }
+
+        // Alt satıra geçme kontrolü (number alanı ve sonrası için)
+        if ((shouldMoveToNextLine || (field.type === "number" && values[`${field.id}_newLine`])) && x > padding) {
+          y += lineHeight;
+          x = padding;
+        }
+
+        // Number alanı için üstten padding ekle (alt satıra geçilsin mi true ise)
+        if (field.type === "number" && values[`${field.id}_newLine`]) {
+          y += 20;
         }
 
         // Heading ve Divider
@@ -200,7 +212,7 @@ export default function Page({ params }) {
 
             pdf.text(line, x, y);
             x += fieldWidth + space;
-          }
+          }  
           i++;
           continue;
         }
@@ -247,12 +259,22 @@ export default function Page({ params }) {
                         />
                       )}
                       {field.type === "number" && (
-                        <Input
-                          type="number"
-                          value={value}
-                          onChange={e => handleValueChange(field.id, e.target.value)}
-                          placeholder={field.label}
-                        />
+                        <div className="flex flex-col gap-2">
+                          <Input
+                            type="number"
+                            value={value}
+                            onChange={e => handleValueChange(field.id, e.target.value)}
+                            placeholder={field.label}
+                          />
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="checkbox"
+                              checked={values[`${field.id}_newLine`] || false}
+                              onChange={e => handleValueChange(`${field.id}_newLine`, e.target.checked)}
+                            />
+                            <label className="text-sm">Alt satıra geç</label>
+                          </div>
+                        </div>
                       )}
                       {field.type === "date" && (
                         <Input
