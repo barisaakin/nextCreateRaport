@@ -104,9 +104,12 @@ export default function Page({ params }) {
     pdf.setFont('helvetica', 'normal');
     pdf.setFontSize(12);
 
-    format.pages.forEach(page => {
-      x = padding;
-      y += 0;
+    format.pages.forEach((page, pageIndex) => {
+      if (pageIndex > 0) {
+        pdf.addPage();
+        y = padding;
+        x = padding;
+      }
 
       let fields = page.fields;
       let i = 0;
