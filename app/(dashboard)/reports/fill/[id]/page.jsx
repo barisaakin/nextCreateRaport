@@ -239,7 +239,7 @@ export default function Page({ params }) {
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Formatı Doldur: {format.name}</h1>
         <div className="flex gap-2">
-          <Button onClick={handleSave}>Kaydet</Button>
+            {/*<Button onClick={handleSave}>Kaydet</Button> */}
           <Button variant="outline" onClick={handleDownloadPDF}>PDF olarak indir</Button>
         </div>
       </div>
