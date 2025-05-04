@@ -61,14 +61,17 @@ export default function Page({ params }) {
     const pageWidth = pdf.internal.pageSize.getWidth();
     const maxContentWidth = pageWidth - 2 * padding;
     let y = padding;
+    let x = padding;
     const rowGap = 28;
+    let rowMaxHeight = 0;
 
     pdf.setFontSize(16);
 
     format.pages.forEach(page => {
       const fields = page.fields;
-      let x = padding;
-      let maxHeightInRow = 0;
+      x = padding;
+      y += 0;
+      rowMaxHeight = 0;
       let i = 0;
       while (i < fields.length) {
         const field = fields[i];
@@ -78,12 +81,12 @@ export default function Page({ params }) {
           continue;
         }
 
-        // Heading ve Divider her zaman yeni satırda ve tam genişlikte
+        // Heading ve Divider
         if (field.type === "heading") {
           if (x > padding) {
-            y += maxHeightInRow || rowGap;
+            y += rowMaxHeight || rowGap;
             x = padding;
-            maxHeightInRow = 0;
+            rowMaxHeight = 0;
           }
           pdf.setFont(undefined, "bold");
           pdf.setFontSize(18);
@@ -96,21 +99,21 @@ export default function Page({ params }) {
         }
         if (field.type === "divider") {
           if (x > padding) {
-            y += maxHeightInRow || rowGap;
+            y += rowMaxHeight || rowGap;
             x = padding;
-            maxHeightInRow = 0;
+            rowMaxHeight = 0;
           }
           y += 16;
           i++;
           continue;
         }
 
-        // Checkbox her zaman yeni satırda başlar
+        // Checkbox
         if (field.type === "checkbox") {
           if (x > padding) {
-            y += maxHeightInRow || rowGap;
+            y += rowMaxHeight || rowGap;
             x = padding;
-            maxHeightInRow = 0;
+            rowMaxHeight = 0;
           }
           pdf.rect(x, y - 14, 14, 14);
           const checked = (typeof value === "object" ? value.checked : false) || value === true;
@@ -121,27 +124,53 @@ export default function Page({ params }) {
             pdf.setLineWidth(1);
           }
           pdf.text(String(value.content || value), x + 18, y - 2);
-          y += rowGap;
-          x = padding;
-          maxHeightInRow = 0;
+          x += 18 + pdf.getTextWidth(String(value.content || value)) + 10;
+          rowMaxHeight = Math.max(rowMaxHeight, rowGap);
           i++;
           continue;
         }
 
-        // Text, Number, Date, Textarea her biri alt alta gelsin
+        // Text, Number, Date, Textarea: width/height ve x/y güncelle
         if (["text", "number", "date", "textarea"].includes(field.type)) {
+          let fieldWidth = 0;
           let fieldHeight = rowGap;
           let lines = [];
-          if (field.type === "textarea") {
-            lines = pdf.splitTextToSize(value, maxContentWidth);
+          let availableWidth = pageWidth - padding - x;
+
+          // width prop'u varsa onu kullan
+          if (field.width && String(field.width).includes("px")) {
+            fieldWidth = parseInt(field.width);
+          } else if (field.width && !isNaN(Number(field.width))) {
+            fieldWidth = Number(field.width);
+          } else if (field.type === "textarea" || field.type === "text") {
+            lines = pdf.splitTextToSize(value, availableWidth);
+            fieldWidth = Math.max(...lines.map(line => pdf.getTextWidth(line)), 0) + 10;
             fieldHeight = lines.length * 20 + 10;
+          } else {
+            fieldWidth = pdf.getTextWidth(String(value)) + 10;
+          }
+
+          // Satırdan taşarsa alt satıra geç
+          if (x + fieldWidth > pageWidth - padding) {
+            y += rowMaxHeight || rowGap;
+            x = padding;
+            rowMaxHeight = 0;
+            availableWidth = pageWidth - padding - x;
+            if ((field.type === "textarea" || field.type === "text") && !field.width) {
+              lines = pdf.splitTextToSize(value, availableWidth);
+              fieldWidth = Math.max(...lines.map(line => pdf.getTextWidth(line)), 0) + 10;
+              fieldHeight = lines.length * 20 + 10;
+            }
+          }
+
+          // Field'ı yaz
+          if ((field.type === "textarea" || field.type === "text") && lines.length > 0) {
             pdf.text(lines, x, y);
           } else {
             pdf.text(String(value), x, y);
           }
-          y += fieldHeight;
-          x = padding;
-          maxHeightInRow = 0;
+          rowMaxHeight = Math.max(rowMaxHeight, fieldHeight);
+          x += fieldWidth + pdf.getTextWidth(" "); // 1 space aralık
           i++;
           continue;
         }
@@ -149,9 +178,9 @@ export default function Page({ params }) {
         // Diğer field tipleri için (image, html vs) istersen ekle
         i++;
       }
-      // Son satırda field varsa, alt satıra geç
+      // Satırda field kaldıysa, alt satıra geç
       if (x > padding) {
-        y += maxHeightInRow || rowGap;
+        y += rowMaxHeight || rowGap;
       }
     });
     pdf.save(`${format?.name || "rapor"}.pdf`);
