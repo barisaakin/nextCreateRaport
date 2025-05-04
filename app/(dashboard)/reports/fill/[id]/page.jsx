@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, use } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -33,6 +33,7 @@ const turkishFont = {
 };
 
 export default function Page({ params }) {
+  const unwrappedParams = use(params);
   const router = useRouter();
   const [format, setFormat] = useState(null);
   const [values, setValues] = useState({});
@@ -42,7 +43,7 @@ export default function Page({ params }) {
     const savedFormats = localStorage.getItem('reportFormats');
     if (savedFormats) {
       const formats = JSON.parse(savedFormats);
-      const foundFormat = formats.find(f => f.id === parseInt(params.id));
+      const foundFormat = formats.find(f => f.id === parseInt(unwrappedParams.id));
       if (foundFormat) {
         setFormat(foundFormat);
         // Her sayfa için boş değerler oluştur
@@ -59,7 +60,7 @@ export default function Page({ params }) {
     } else {
       router.push("/reports");
     }
-  }, [params.id, router]);
+  }, [unwrappedParams.id, router]);
 
   const handleValueChange = (fieldId, value) => {
     setValues(prev => ({
@@ -72,8 +73,8 @@ export default function Page({ params }) {
     // Değerleri localStorage'a kaydet
     const savedReports = localStorage.getItem('filledReports') || '{}';
     const reports = JSON.parse(savedReports);
-    reports[params.id] = {
-      formatId: params.id,
+    reports[unwrappedParams.id] = {
+      formatId: unwrappedParams.id,
       values,
       filledAt: new Date().toISOString()
     };

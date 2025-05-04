@@ -56,11 +56,6 @@ const data = {
     url: "reports",
     icon: ClipboardMinus,
   },
-  {
-    name: "Add Rapor Format",
-    url: "#",
-    icon: ClipboardPlus,
-  },
   ],
 }
 
