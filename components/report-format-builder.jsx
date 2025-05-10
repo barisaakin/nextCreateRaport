@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { arrayMove } from "@dnd-kit/sortable";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Check, Heading, Text, List, Hash, Calendar, Image as IconImage, Minus, Code2, Plus, ChevronLeft, ChevronRight } from "lucide-react";
+import { Check, Heading, Text, List, Hash, Calendar, Image as IconImage, Minus, Code2, Plus, ChevronLeft, ChevronRight, Table } from "lucide-react";
 
 const FIELD_TYPES = [
   { type: "text", label: "Text", icon: <Text className="w-4 h-4" /> },
@@ -15,6 +15,7 @@ const FIELD_TYPES = [
   { type: "image", label: "Image", icon: <IconImage className="w-4 h-4" /> },
   { type: "divider", label: "Divider", icon: <Minus className="w-4 h-4" /> },
   { type: "html", label: "HTML", icon: <Code2 className="w-4 h-4" /> },
+  { type: "table", label: "Table", icon: <Table className="w-4 h-4" /> },
 ];
 
 function FieldPreview({ field }) {
@@ -40,6 +41,16 @@ function FieldPreview({ field }) {
   if (field.type === "image") return <div className="w-full h-20 flex items-center justify-center text-xs" style={{...style, background: field.bgColor || '#f3f3f3'}}>Image</div>;
   if (field.type === "divider") return <div style={{height: field.height || 2, background: field.bgColor || '#ccc', margin: field.margin || '16px 0'}} />;
   if (field.type === "html") return <div className="border rounded p-2" style={style} dangerouslySetInnerHTML={{__html: field.html || '<span style=\'color:#888\'>HTML Alanı</span>'}} />;
+  if (field.type === "table") {
+    return (
+      <div className="border rounded p-4" style={style}>
+        <div className="text-sm font-medium mb-2">{field.label || "Table"}</div>
+        <div className="text-xs text-muted-foreground">
+          {field.columns ? `${field.columns.length} columns` : "No columns defined"}
+        </div>
+      </div>
+    );
+  }
   return null;
 }
 
@@ -70,6 +81,7 @@ export default function ReportFormatBuilder({ onSave, initialFormat }) {
       ...(type === "date" ? { exampleDate: "" } : {}),
       ...(type === "divider" ? { height: 2, bgColor: '#ccc', margin: '16px 0' } : {}),
       ...(type === "html" ? { html: "" } : {}),
+      ...(type === "table" ? { columns: [{ key: '' }], rowCount: 1 } : {}),
     };
 
     // Eğer bir text alanı seçiliyse ve yeni alan number veya date ise
@@ -334,6 +346,40 @@ export default function ReportFormatBuilder({ onSave, initialFormat }) {
                 <label className="block text-xs mb-1">Örnek Tarih</label>
                 <Input type="date" value={selectedField.exampleDate || ""} onChange={e => handleFieldChange("exampleDate", e.target.value)} />
               </div>
+            )}
+            {/* Table özellikleri */}
+            {selectedField.type === "table" && (
+              <>
+                <div>
+                  <label className="block text-xs mb-1">Sütun Sayısı</label>
+                  <Input
+                    type="number"
+                    min="1"
+                    value={selectedField.columns?.length || 1}
+                    onChange={e => {
+                      const newCount = Math.max(1, parseInt(e.target.value) || 1);
+                      let newColumns = selectedField.columns ? [...selectedField.columns] : [];
+                      if (newColumns.length < newCount) {
+                        for (let i = newColumns.length; i < newCount; i++) {
+                          newColumns.push({ key: '' });
+                        }
+                      } else if (newColumns.length > newCount) {
+                        newColumns = newColumns.slice(0, newCount);
+                      }
+                      handleFieldChange("columns", newColumns);
+                    }}
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs mb-1">Satır Sayısı</label>
+                  <Input
+                    type="number"
+                    min="1"
+                    value={selectedField.rowCount || 1}
+                    onChange={e => handleFieldChange("rowCount", parseInt(e.target.value) || 1)}
+                  />
+                </div>
+              </>
             )}
             {/* Divider özellikleri */}
             {selectedField.type === "divider" && (

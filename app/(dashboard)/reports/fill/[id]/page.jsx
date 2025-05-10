@@ -4,8 +4,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import jsPDF from "jspdf";
-import 'jspdf-autotable';
-
+import autoTable from "jspdf-autotable";
 // Türkçe karakter dönüşüm tablosu
 const turkishCharMap = {
   'ç': 'c', 'Ç': 'C',
@@ -118,7 +117,9 @@ export default function Page({ params }) {
       while (i < fields.length) {
         const field = fields[i];
         let value = values[field.id];
-        if (!value || (typeof value === "string" && value.trim() === "")) {
+
+        // SADECE TABLE HARİÇ!
+        if (field.type !== "table" && (!value || (typeof value === "string" && value.trim() === ""))) {
           i++;
           continue;
         }
@@ -217,6 +218,54 @@ export default function Page({ params }) {
             pdf.text(line, x, y);
             x += fieldWidth + space;
           }  
+          i++;
+          continue;
+        }
+        if (field.type === "table") {
+          if (x > padding) {
+            y += lineHeight;
+            x = padding;
+          }
+          // Tablo başlıkları ve satır verileri
+          const tableBody = [];
+          for (let rowIndex = 0; rowIndex < field.rowCount; rowIndex++) {
+            const row = field.columns.map((col, colIndex) => convertTurkishChars(values[`${field.id}_${rowIndex}_${colIndex}`] || ''));
+            tableBody.push(row);
+          }
+
+          pdf.autoTable({
+            body: tableBody,
+            startY: y,
+            margin: { left: padding, right: padding },
+            tableWidth: 'auto',
+            styles: {
+              font: 'helvetica',
+              fontSize: 12,
+              cellPadding: 5,
+              lineColor: [0, 0, 0],
+              lineWidth: 0.5,
+              textColor: [0, 0, 0],
+              cellWidth: 'auto',
+              overflow: 'linebreak',
+              halign: 'left',
+              valign: 'middle'
+            },
+            alternateRowStyles: {
+              fillColor: [255, 255, 255]
+            },
+            columnStyles: {
+              0: { cellWidth: 'auto' }
+            },
+            theme: 'grid',
+            didParseCell: function (data) {
+              if (data.row.index === 0) {
+                data.cell.styles.fillColor = [240, 240, 240]; // Açık gri
+              }
+            }
+          });
+
+          y = pdf.lastAutoTable.finalY + 20;
+          x = padding;
           i++;
           continue;
         }
@@ -330,6 +379,48 @@ export default function Page({ params }) {
                   );
                 } else if (field.type === "divider") {
                   return <hr key={field.id} className="my-4" />;
+                } else if (field.type === "table") {
+                  if (!field.columns || field.columns.length === 0) {
+                    return <div key={field.id} className="text-red-500">Tablo için en az bir sütun tanımlayın.</div>;
+                  }
+                  return (
+                    <div key={field.id} className="flex flex-col gap-4">
+                      <label className="text-sm font-medium">{field.label}</label>
+                      <div className="border rounded-lg overflow-hidden">
+                        <table className="w-full">
+                          <thead>
+                            <tr className="bg-muted">
+                              {field.columns.map((col, colIndex) => (
+                                <th key={colIndex} className="p-2 text-left border-b font-bold">
+                                  {`Sütun ${colIndex + 1}`}
+                                </th>
+                              ))}
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {Array.from({ length: field.rowCount || 1 }).map((_, rowIndex) => (
+                              <tr key={rowIndex} className="border-b last:border-b-0">
+                                {field.columns.map((col, colIndex) => (
+                                  <td key={colIndex} className="p-2">
+                                    <Input
+                                      value={values[`${field.id}_${rowIndex}_${colIndex}`] || ''}
+                                      onChange={e => {
+                                        setValues(prev => ({
+                                          ...prev,
+                                          [`${field.id}_${rowIndex}_${colIndex}`]: e.target.value
+                                        }));
+                                      }}
+                                      placeholder={`Değer`}
+                                    />
+                                  </td>
+                                ))}
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  );
                 }
                 return null;
               })}
