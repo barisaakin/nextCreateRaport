@@ -3,17 +3,19 @@ import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Plus, Pencil, Trash2, FileText } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { api } from "@/lib/api";
 
 export default function Page() {
   const router = useRouter();
   const [formats, setFormats] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    // Sayfa yüklendiğinde localStorage'dan formatları al
-    const savedFormats = localStorage.getItem('reportFormats');
-    if (savedFormats) {
-      setFormats(JSON.parse(savedFormats));
-    }
+    api.get("/reports")
+      .then(setFormats)
+      .catch(err => setError(err.message))
+      .finally(() => setLoading(false));
   }, []);
 
   const handleCreateFormat = () => {
@@ -24,15 +26,21 @@ export default function Page() {
     router.push(`/reports/edit/${id}`);
   };
 
-  const handleDeleteFormat = (id) => {
-    const updatedFormats = formats.filter(format => format.id !== id);
-    setFormats(updatedFormats);
-    localStorage.setItem('reportFormats', JSON.stringify(updatedFormats));
+  const handleDeleteFormat = async (id) => {
+    try {
+      await api.delete(`/reports/${id}`);
+      setFormats(prev => prev.filter(format => format.id !== id));
+    } catch (err) {
+      alert(err.message);
+    }
   };
 
   const handleFillFormat = (id) => {
     router.push(`/reports/fill/${id}`);
   };
+
+  if (loading) return <div>Yükleniyor...</div>;
+  if (error) return <div className="text-red-500">{error}</div>;
 
   return (
     <div className="flex flex-col gap-4 p-4">

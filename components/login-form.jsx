@@ -13,6 +13,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { IconEye, IconEyeOff } from "@tabler/icons-react";
+import { api } from "@/lib/api";
 
 export function LoginForm({
   className,
@@ -20,11 +21,21 @@ export function LoginForm({
 }) {
   const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
+  const [error, setError] = useState("");
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Burada istersen login işlemi yapabilirsin
-    router.push("/");
+    setError("");
+    const email = e.target.email.value;
+    const password = e.target.password.value;
+    try {
+      const res = await api.post("/auth/login", { email, password });
+      localStorage.setItem("token", res.accessToken);
+      localStorage.setItem("refreshToken", res.refreshToken);
+      router.push("/");
+    } catch (err) {
+      setError(err.message || "Giriş başarısız");
+    }
   };
 
   return (
@@ -75,6 +86,7 @@ export function LoginForm({
                   </button>
                 </div>
               </div>
+              {error && <div className="text-red-500 text-sm text-center">{error}</div>}
               <Button type="submit" className="w-full">
                 Login
               </Button>

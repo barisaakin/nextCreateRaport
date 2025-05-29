@@ -1,12 +1,12 @@
 "use client";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { DataTable } from "@/components/data-table";
-import data from "./data.json";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { IconDotsVertical } from "@tabler/icons-react";
 import { EditRowDialog } from "@/components/dialog-edit-row";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { api } from "@/lib/api";
 
 const columns = [
   { accessorKey: 'id', header: 'ID' },
@@ -60,6 +60,47 @@ const columns = [
 ];
 
 export default function Page() {
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    api.get("/companies")
+      .then(setData)
+      .catch(err => setError(err.message))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const handleAdd = async (created) => {
+    try {
+      const newCompany = await api.post("/companies", created);
+      setData(prev => [...prev, newCompany]);
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
+  const handleUpdate = async (updated) => {
+    try {
+      const company = await api.patch(`/companies/${updated.id}`, updated);
+      setData(prev => prev.map(c => c.id === company.id ? company : c));
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    try {
+      await api.delete(`/companies/${id}`);
+      setData(prev => prev.filter(c => c.id !== id));
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
+  if (loading) return <div>Yükleniyor...</div>;
+  if (error) return <div className="text-red-500">{error}</div>;
+
   return (
     <div>
       <DataTable
@@ -67,7 +108,9 @@ export default function Page() {
         columns={columns}
         addButtonTitle="Add Company"
         addDialogColumns={columns}
-        onAdd={(created) => alert(JSON.stringify(created))}
+        onAdd={handleAdd}
+        onUpdate={handleUpdate}
+        onDelete={handleDelete}
       />
     </div>
   );

@@ -1,12 +1,13 @@
 "use client";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { DataTable } from "@/components/data-table";
-import data from "@/app/(dashboard)/users/data.json";
 import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { IconDotsVertical, IconCircleCheck, IconCircleX } from "@tabler/icons-react";
 import { EditRowDialog } from "@/components/dialog-edit-row";
+import { api } from "@/lib/api";
+
 const columns = [
   { accessorKey: 'id', header: 'ID' },
   { accessorKey: 'firstName', header: 'First Name' },
@@ -85,6 +86,47 @@ const columns = [
 ];
 
 export default function Page() {
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    api.get("/users")
+      .then(setData)
+      .catch(err => setError(err.message))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const handleAdd = async (created) => {
+    try {
+      const newUser = await api.post("/users", created);
+      setData(prev => [...prev, newUser]);
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
+  const handleUpdate = async (updated) => {
+    try {
+      const user = await api.patch(`/users/${updated.id}`, updated);
+      setData(prev => prev.map(u => u.id === user.id ? user : u));
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    try {
+      await api.delete(`/users/${id}`);
+      setData(prev => prev.filter(u => u.id !== id));
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
+  if (loading) return <div>Yükleniyor...</div>;
+  if (error) return <div className="text-red-500">{error}</div>;
+
   return (
     <div>
       <DataTable
@@ -92,7 +134,9 @@ export default function Page() {
         columns={columns}
         addButtonTitle="Add User"
         addDialogColumns={columns}
-        onAdd={(created) => alert(JSON.stringify(created))}
+        onAdd={handleAdd}
+        onUpdate={handleUpdate}
+        onDelete={handleDelete}
       />
     </div>
   );
