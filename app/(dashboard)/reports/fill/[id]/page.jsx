@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import { api } from "@/lib/api";
 // Türkçe karakter dönüşüm tablosu
 const turkishCharMap = {
   'ç': 'c', 'Ç': 'C',
@@ -38,27 +39,23 @@ export default function Page({ params }) {
   const [values, setValues] = useState({});
 
   useEffect(() => {
-    // Formatı localStorage'dan al
-    const savedFormats = localStorage.getItem('reportFormats');
-    if (savedFormats) {
-      const formats = JSON.parse(savedFormats);
-      const foundFormat = formats.find(f => f.id === parseInt(unwrappedParams.id));
-      if (foundFormat) {
-        setFormat(foundFormat);
-        // Her sayfa için boş değerler oluştur
+    const fetchFormat = async () => {
+      try {
+        const data = await api.get(`/reports/${unwrappedParams.id}`);
+        setFormat(data);
+        // Her sayfa için boş değer oluştur
         const initialValues = {};
-        foundFormat.pages.forEach(page => {
+        data.pages.forEach(page => {
           page.fields.forEach(field => {
             initialValues[field.id] = '';
           });
         });
         setValues(initialValues);
-      } else {
+      } catch (err) {
         router.push("/reports");
       }
-    } else {
-      router.push("/reports");
-    }
+    };
+    fetchFormat();
   }, [unwrappedParams.id, router]);
 
   const handleValueChange = (fieldId, value) => {

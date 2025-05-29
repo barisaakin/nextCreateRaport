@@ -2,44 +2,32 @@
 import React, { useEffect, useState } from "react";
 import ReportFormatBuilder from "@/components/report-format-builder";
 import { useRouter } from "next/navigation";
+import { api } from "@/lib/api";
 
 export default function Page(props) {
   const router = useRouter();
   const [format, setFormat] = useState(null);
+  const { id } = props.params;
 
   useEffect(() => {
-    // Formatı localStorage'dan al
-    const savedFormats = localStorage.getItem('reportFormats');
-    if (savedFormats) {
-      const formats = JSON.parse(savedFormats);
-      const foundFormat = formats.find(f => f.id === parseInt(props.params.id));
-      if (foundFormat) {
-        setFormat(foundFormat);
-      } else {
+    const fetchFormat = async () => {
+      try {
+        const data = await api.get(`/reports/${id}`);
+        setFormat(data);
+      } catch (err) {
         router.push("/reports");
       }
-    } else {
-      router.push("/reports");
-    }
-  }, [props.params.id, router]);
+    };
+    fetchFormat();
+  }, [id, router]);
 
-  const handleSave = (updatedFormat) => {
-    // Mevcut formatları al
-    const savedFormats = localStorage.getItem('reportFormats');
-    const formats = savedFormats ? JSON.parse(savedFormats) : [];
-    
-    // Formatı güncelle
-    const updatedFormats = formats.map(f => 
-      f.id === parseInt(props.params.id) 
-        ? { ...updatedFormat, id: f.id, updatedAt: new Date().toISOString() }
-        : f
-    );
-    
-    // Formatları kaydet
-    localStorage.setItem('reportFormats', JSON.stringify(updatedFormats));
-    
-    // Reports sayfasına yönlendir
-    router.push("/reports");
+  const handleSave = async (updatedFormat) => {
+    try {
+      await api.patch(`/reports/${id}`, updatedFormat);
+      router.push("/reports");
+    } catch (err) {
+      alert(err.message);
+    }
   };
 
   if (!format) {

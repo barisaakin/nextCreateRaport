@@ -2,29 +2,20 @@
 import React from "react";
 import ReportFormatBuilder from "@/components/report-format-builder";
 import { useRouter } from "next/navigation";
+import { api } from "@/lib/api";
+import toast from "react-hot-toast";
 
 export default function Page() {
   const router = useRouter();
 
-  const handleSave = (format) => {
-    // Mevcut formatları al
-    const savedFormats = localStorage.getItem('reportFormats');
-    const formats = savedFormats ? JSON.parse(savedFormats) : [];
-    
-    // Yeni formatı ekle
-    const newFormat = {
-      ...format,
-      id: Date.now(), // Benzersiz ID oluştur
-      description: format.description || "Açıklama yok"
-    };
-    
-    formats.push(newFormat);
-    
-    // Formatları kaydet
-    localStorage.setItem('reportFormats', JSON.stringify(formats));
-    
-    // Reports sayfasına yönlendir
-    router.push("/reports");
+  const handleSave = async (format) => {
+    try {
+      await api.post("/reports", format);
+      toast.success("Rapor oluşturuldu");
+      router.push("/reports");
+    } catch (err) {
+      alert(err.message);
+    }
   };
 
   return (

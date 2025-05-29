@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Plus, Pencil, Trash2, FileText } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
+import Loader from "@/components/ui/skeleton";
+import toast from "react-hot-toast";
 
 export default function Page() {
   const router = useRouter();
@@ -11,11 +13,20 @@ export default function Page() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  const fetchReports = async () => {
+    setLoading(true);
+    try {
+      const data = await api.get("/reports");
+      setFormats(data);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    api.get("/reports")
-      .then(setFormats)
-      .catch(err => setError(err.message))
-      .finally(() => setLoading(false));
+    fetchReports();
   }, []);
 
   const handleCreateFormat = () => {
@@ -29,7 +40,8 @@ export default function Page() {
   const handleDeleteFormat = async (id) => {
     try {
       await api.delete(`/reports/${id}`);
-      setFormats(prev => prev.filter(format => format.id !== id));
+      toast.success("Rapor silindi");
+      await fetchReports();
     } catch (err) {
       alert(err.message);
     }
@@ -39,7 +51,7 @@ export default function Page() {
     router.push(`/reports/fill/${id}`);
   };
 
-  if (loading) return <div>Yükleniyor...</div>;
+  if (loading) return <Loader size={64} />;
   if (error) return <div className="text-red-500">{error}</div>;
 
   return (
