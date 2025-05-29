@@ -6,12 +6,24 @@ import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
 import Loader from "@/components/ui/skeleton";
 import toast from "react-hot-toast";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export default function Page() {
   const router = useRouter();
   const [formats, setFormats] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [formatToDelete, setFormatToDelete] = useState(null);
 
   const fetchReports = async () => {
     setLoading(true);
@@ -19,6 +31,7 @@ export default function Page() {
       const data = await api.get("/reports");
       setFormats(data);
     } catch (err) {
+      toast.error("Raporlar yüklenirken bir hata oluştu");
       setError(err.message);
     } finally {
       setLoading(false);
@@ -38,12 +51,22 @@ export default function Page() {
   };
 
   const handleDeleteFormat = async (id) => {
+    setFormatToDelete(id);
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!formatToDelete) return;
+    
     try {
-      await api.delete(`/reports/${id}`);
-      toast.success("Rapor silindi");
+      await api.delete(`/reports/${formatToDelete}`);
+      toast.success("Rapor başarıyla silindi");
       await fetchReports();
     } catch (err) {
-      alert(err.message);
+      toast.error("Rapor silinirken bir hata oluştu");
+    } finally {
+      setDeleteDialogOpen(false);
+      setFormatToDelete(null);
     }
   };
 
@@ -73,7 +96,7 @@ export default function Page() {
           </Button>
         </div>
       ) : (
-        <div className="grid gap-4">
+        <div className="flex flex-col gap-4">
           {formats.map((format) => (
             <div key={format.id} className="flex items-center justify-between p-4 bg-white rounded-lg shadow">
               <div className="flex-1">
@@ -114,6 +137,23 @@ export default function Page() {
           ))}
         </div>
       )}
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Raporu Sil</AlertDialogTitle>
+            <AlertDialogDescription>
+              Bu raporu silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>İptal</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Evet, Sil
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

@@ -4,6 +4,7 @@ import { arrayMove } from "@dnd-kit/sortable";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Check, Heading, Text, List, Hash, Calendar, Image as IconImage, Minus, Code2, Plus, ChevronLeft, ChevronRight, Table } from "lucide-react";
+import { toast } from "react-hot-toast";
 
 const FIELD_TYPES = [
   { type: "text", label: "Text", icon: <Text className="w-4 h-4" /> },
@@ -60,6 +61,7 @@ export default function ReportFormatBuilder({ onSave, initialFormat }) {
   const [selected, setSelected] = useState(null);
   const [formatName, setFormatName] = useState(initialFormat?.name || "");
   const [addType, setAddType] = useState(FIELD_TYPES[0].type);
+  const [loading, setLoading] = useState(false);
 
   const currentFields = pages[currentPage].fields;
 
@@ -166,24 +168,31 @@ export default function ReportFormatBuilder({ onSave, initialFormat }) {
 
   const selectedField = currentFields.find(f => f.id === selected);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!formatName.trim()) {
-      alert("Lütfen format adı giriniz!");
+      toast.error("Lütfen format adı giriniz!");
       return;
     }
 
-    const format = {
-      name: formatName,
-      pages,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    };
+    setLoading(true);
+    try {
+      const format = {
+        name: formatName,
+        pages,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
 
-    if (onSave) {
-      onSave(format);
-    } else {
-      console.log("Saved format:", format);
-      alert("Format JSON'u console'a yazıldı!");
+      if (onSave) {
+        await onSave(format);
+      } else {
+        console.log("Saved format:", format);
+        toast.success("Format başarıyla kaydedildi!");
+      }
+    } catch (err) {
+      toast.error(err.message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -211,7 +220,9 @@ export default function ReportFormatBuilder({ onSave, initialFormat }) {
       <div className="flex-1 flex flex-col p-8 gap-4 items-center overflow-y-auto max-h-[90vh] min-h-[90vh]">
         <div className="flex gap-4 mb-6 items-center w-full max-w-2xl mx-auto">
           <Input placeholder="Format Adı" value={formatName} onChange={e => setFormatName(e.target.value)} className="w-64 rounded-lg" />
-          <Button onClick={handleSave} variant="default" className="rounded-lg px-6 py-2 text-base">Kaydet</Button>
+          <Button onClick={handleSave} variant="default" className="rounded-lg px-6 py-2 text-base" disabled={loading}>
+            {loading ? "Kaydediliyor..." : "Kaydet"}
+          </Button>
         </div>
         <div className="flex items-center gap-4 mb-4">
           <Button variant="outline" size="icon" onClick={() => setCurrentPage(Math.max(0, currentPage - 1))} disabled={currentPage === 0}>

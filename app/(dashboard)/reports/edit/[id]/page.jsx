@@ -1,13 +1,17 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, use } from "react";
 import ReportFormatBuilder from "@/components/report-format-builder";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
+import toast from "react-hot-toast";
+import Loader from "@/components/ui/skeleton";
 
 export default function Page(props) {
   const router = useRouter();
   const [format, setFormat] = useState(null);
-  const { id } = props.params;
+  const [loading, setLoading] = useState(true);
+  const unwrappedParams = use(props.params);
+  const { id } = unwrappedParams;
 
   useEffect(() => {
     const fetchFormat = async () => {
@@ -15,24 +19,30 @@ export default function Page(props) {
         const data = await api.get(`/reports/${id}`);
         setFormat(data);
       } catch (err) {
+        toast.error("Rapor yüklenirken bir hata oluştu");
         router.push("/reports");
+      } finally {
+        setLoading(false);
       }
     };
     fetchFormat();
   }, [id, router]);
 
   const handleSave = async (updatedFormat) => {
+    setLoading(true);
     try {
       await api.patch(`/reports/${id}`, updatedFormat);
+      toast.success("Rapor başarıyla güncellendi");
       router.push("/reports");
     } catch (err) {
-      alert(err.message);
+      toast.error(err.message);
+    } finally {
+      setLoading(false);
     }
   };
 
-  if (!format) {
-    return <div>Yükleniyor...</div>;
-  }
+  if (loading) return <Loader size={64} />;
+  if (!format) return null;
 
   return (
     <div className="flex flex-col gap-4 p-4">

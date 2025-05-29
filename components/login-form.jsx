@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { IconEye, IconEyeOff } from "@tabler/icons-react";
 import { api } from "@/lib/api";
+import toast from "react-hot-toast";
 
 export function LoginForm({
   className,
@@ -30,11 +31,18 @@ export function LoginForm({
     const password = e.target.password.value;
     try {
       const res = await api.post("/auth/login", { email, password });
-      localStorage.setItem("token", res.accessToken);
+      localStorage.setItem("accessToken", res.accessToken);
       localStorage.setItem("refreshToken", res.refreshToken);
-      router.push("/");
+      document.cookie = `token=${res.accessToken}; path=/; max-age=86400`;
+      toast.success("Giriş başarılı!");
+      window.location.href = "/";
     } catch (err) {
-      setError(err.message || "Giriş başarısız");
+      let errorMsg = "Giriş başarısız.";
+      if (err?.response?.data?.message === "Invalid credentials") {
+        errorMsg = "E-posta adresi veya şifre hatalı.";
+      }
+      setError(errorMsg);
+      toast.error(errorMsg);
     }
   };
 
@@ -44,7 +52,7 @@ export function LoginForm({
         <CardHeader>
           <CardTitle className="text-2xl text-center">LOGIN</CardTitle>
           <div className="flex justify-center py-2">
-            <img src="/logo.png" alt="Logo" className="h-20 w-auto" />
+            <img src="/logo.png" alt="Logo" className="h-20 w-auto" onError={e => { e.target.style.display = 'none'; }} />
           </div>
           <CardDescription>
             Enter your email below to login to your account
