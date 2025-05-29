@@ -28,11 +28,28 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar"
+import { useRouter } from "next/navigation";
+import { api } from "@/lib/api";
+import toast from "react-hot-toast";
 
 export function NavUser({
   user
 }) {
   const { isMobile } = useSidebar()
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    try {
+      await api.post("/auth/logout");
+    } catch (e) {}
+    localStorage.removeItem("token");
+    localStorage.removeItem("refreshToken");
+    router.push("/sign-in");
+  };
+
+  const handleAccount = () => {
+    router.push("/account");
+  };
 
   return (
     <SidebarMenu>
@@ -76,14 +93,14 @@ export function NavUser({
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={handleAccount}>
                 <IconUserCircle />
                 Account
               </DropdownMenuItem>
 
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={handleLogout}>
               <IconLogout />
               Log out
             </DropdownMenuItem>
