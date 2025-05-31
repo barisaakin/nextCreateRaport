@@ -87,7 +87,7 @@ export default function Page() {
         </Button>
       </div>
 
-      {formats.length === 0 ? (
+      {formats?.length === 0 ? (
         <div className="flex flex-col items-center justify-center p-8 bg-white rounded-lg shadow">
           <p className="text-lg text-muted-foreground mb-4">Henüz hiç format oluşturulmamış</p>
           <Button onClick={handleCreateFormat} className="flex items-center gap-2">
@@ -97,7 +97,7 @@ export default function Page() {
         </div>
       ) : (
         <div className="flex flex-col gap-4">
-          {formats.map((format) => (
+          {formats?.map((format) => (
             <div key={format.id} className="flex items-center justify-between p-4 bg-white rounded-lg shadow">
               <div className="flex-1">
                 <h3 className="text-lg font-semibold">{format.name}</h3>

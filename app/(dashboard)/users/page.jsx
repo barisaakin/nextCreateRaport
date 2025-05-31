@@ -31,7 +31,7 @@ export default function Page() {
 
   const addDialogColumns = [
     ...modalColumns,
-    { accessorKey: 'companyId', header: 'Şirket', type: 'select', options: companies.map(c => ({ value: c.id, label: c.name })) },
+    { accessorKey: 'companyId', header: 'Şirket', type: 'select', options: companies?.map(c => ({ value: c.id, label: c.name })) },
     { accessorKey: 'password', header: 'Şifre', type: 'password' },
   ];
 
@@ -107,7 +107,7 @@ export default function Page() {
   }, []);
 
   useEffect(() => {
-    if (companies.length > 0) fetchUsers();
+    if (companies?.length > 0) fetchUsers();
   }, [companies]);
 
   const handleAdd = async (created) => {
