@@ -37,25 +37,39 @@ export default function Page({ params }) {
   const router = useRouter();
   const [format, setFormat] = useState(null);
   const [values, setValues] = useState({});
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    let isMounted = true;
+    if (!unwrappedParams.id) {
+      setIsLoading(false);
+      return;
+    }
     const fetchFormat = async () => {
+      setIsLoading(true);
       try {
         const data = await api.get(`/reports/${unwrappedParams.id}`);
-        setFormat(data);
-        // Her sayfa için boş değer oluştur
-        const initialValues = {};
-        data.pages.forEach(page => {
-          page.fields.forEach(field => {
-            initialValues[field.id] = '';
+        if (isMounted) {
+          setFormat(data);
+          // Her sayfa için boş değer oluştur
+          const initialValues = {};
+          data.pages.forEach(page => {
+            page.fields.forEach(field => {
+              initialValues[field.id] = '';
+            });
           });
-        });
-        setValues(initialValues);
+          setValues(initialValues);
+        }
       } catch (err) {
-        router.push("/reports");
+        if (isMounted) router.push("/reports");
+      } finally {
+        if (isMounted) setIsLoading(false);
       }
     };
     fetchFormat();
+    return () => {
+      isMounted = false;
+    };
   }, [unwrappedParams.id, router]);
 
   const handleValueChange = (fieldId, value) => {
@@ -219,14 +233,22 @@ export default function Page({ params }) {
           continue;
         }
         if (field.type === "table") {
+          const tableConfig = field.tableConfig || { columns: [], rowCount: 1 };
+          const columns = tableConfig.columns || [];
+          const rowCount = tableConfig.rowCount || 1;
+
+          if (columns.length === 0) {
+            return <div key={field.id} className="text-red-500">Tablo için en az bir sütun tanımlayın.</div>;
+          }
+
           if (x > padding) {
             y += lineHeight;
             x = padding;
           }
           // Tablo başlıkları ve satır verileri
           const tableBody = [];
-          for (let rowIndex = 0; rowIndex < field.rowCount; rowIndex++) {
-            const row = field.columns.map((col, colIndex) => convertTurkishChars(values[`${field.id}_${rowIndex}_${colIndex}`] || ''));
+          for (let rowIndex = 0; rowIndex < rowCount; rowIndex++) {
+            const row = columns.map((col, colIndex) => convertTurkishChars(values[`${field.id}_${rowIndex}_${colIndex}`] || ''));
             tableBody.push(row);
           }
 
@@ -276,7 +298,7 @@ export default function Page({ params }) {
     pdf.save(`${convertTurkishChars(format?.name || "rapor")}.pdf`);
   };
 
-  if (!format) {
+  if (isLoading || !format) {
     return <div>Yükleniyor...</div>;
   }
 
@@ -377,9 +399,14 @@ export default function Page({ params }) {
                 } else if (field.type === "divider") {
                   return <hr key={field.id} className="my-4" />;
                 } else if (field.type === "table") {
-                  if (!field.columns || field.columns.length === 0) {
+                  const tableConfig = field.tableConfig || { columns: [], rowCount: 1 };
+                  const columns = tableConfig.columns || [];
+                  const rowCount = tableConfig.rowCount || 1;
+
+                  if (columns.length === 0) {
                     return <div key={field.id} className="text-red-500">Tablo için en az bir sütun tanımlayın.</div>;
                   }
+
                   return (
                     <div key={field.id} className="flex flex-col gap-4">
                       <label className="text-sm font-medium">{field.label}</label>
@@ -387,17 +414,17 @@ export default function Page({ params }) {
                         <table className="w-full">
                           <thead>
                             <tr className="bg-muted">
-                              {field.columns.map((col, colIndex) => (
+                              {columns.map((col, colIndex) => (
                                 <th key={colIndex} className="p-2 text-left border-b font-bold">
-                                  {`Sütun ${colIndex + 1}`}
+                                  {col.label || `Sütun ${colIndex + 1}`}
                                 </th>
                               ))}
                             </tr>
                           </thead>
                           <tbody>
-                            {Array.from({ length: field.rowCount || 1 }).map((_, rowIndex) => (
+                            {Array.from({ length: rowCount }).map((_, rowIndex) => (
                               <tr key={rowIndex} className="border-b last:border-b-0">
-                                {field.columns.map((col, colIndex) => (
+                                {columns.map((col, colIndex) => (
                                   <td key={colIndex} className="p-2">
                                     <Input
                                       value={values[`${field.id}_${rowIndex}_${colIndex}`] || ''}

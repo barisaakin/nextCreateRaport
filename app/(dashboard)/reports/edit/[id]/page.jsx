@@ -14,18 +14,28 @@ export default function Page(props) {
   const { id } = unwrappedParams;
 
   useEffect(() => {
+    let isMounted = true;
+    if (!id || isNaN(Number(id))) {
+      setLoading(false);
+      return;
+    }
     const fetchFormat = async () => {
       try {
         const data = await api.get(`/reports/${id}`);
-        setFormat(data);
+        if (isMounted) setFormat(data);
       } catch (err) {
-        toast.error("Rapor yüklenirken bir hata oluştu");
-        router.push("/reports");
+        if (isMounted) {
+          toast.error("Rapor yüklenirken bir hata oluştu");
+          router.push("/reports");
+        }
       } finally {
-        setLoading(false);
+        if (isMounted) setLoading(false);
       }
     };
     fetchFormat();
+    return () => {
+      isMounted = false;
+    };
   }, [id, router]);
 
   const handleSave = async (updatedFormat) => {

@@ -36,7 +36,6 @@ const data = {
   user: {
     name: "Barış AKIN",
     email: "barisakin.35@hotmail.com",
-    avatar: "/avatars/shadcn.jpg",
   },
   company: [
     {

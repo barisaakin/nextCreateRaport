@@ -33,6 +33,7 @@ function FieldPreview({ field }) {
     whiteSpace: 'pre-wrap',
     margin: field.margin || undefined,
   };
+  console.log("Rendering field:", field, "with style:",);
   if (field.type === "text") return <div className="border rounded px-3 py-2" style={style}>{field.label || "Text Field"}</div>;
   if (field.type === "heading") return <h3 style={{...style, width: style.width || '100%'}}>{field.label || "Heading"}</h3>;
   if (field.type === "textarea") return <textarea placeholder={field.label || "Textarea"} disabled className="w-full border rounded p-2" style={style} />;
@@ -47,7 +48,7 @@ function FieldPreview({ field }) {
       <div className="border rounded p-4" style={style}>
         <div className="text-sm font-medium mb-2">{field.label || "Table"}</div>
         <div className="text-xs text-muted-foreground">
-          {field.columns ? `${field.columns.length} columns` : "No columns defined"}
+          {field?.tableConfig ? `${field.tableConfig?.columns.length} columns` : "No columns defined"}
         </div>
       </div>
     );
@@ -83,7 +84,7 @@ export default function ReportFormatBuilder({ onSave, initialFormat }) {
       ...(type === "date" ? { exampleDate: "" } : {}),
       ...(type === "divider" ? { height: 2, bgColor: '#ccc', margin: '16px 0' } : {}),
       ...(type === "html" ? { html: "" } : {}),
-      ...(type === "table" ? { columns: [{ key: '' }], rowCount: 1 } : {}),
+      ...(type === "table" ? { tableConfig: { columns: [{ label: '' }], rowCount: 1 } } : {}),
     };
 
     // Eğer bir text alanı seçiliyse ve yeni alan number veya date ise
@@ -117,7 +118,21 @@ export default function ReportFormatBuilder({ onSave, initialFormat }) {
 
   const handleFieldChange = (key, value) => {
     const updatedPages = [...pages];
-    updatedPages[currentPage].fields = currentFields.map(f => f.id === selected ? { ...f, [key]: value } : f);
+    updatedPages[currentPage].fields = currentFields.map(f => {
+      if (f.id === selected) {
+        if (f.type === "table" && (key === "columns" || key === "rowCount")) {
+          return {
+            ...f,
+            tableConfig: {
+              ...(f.tableConfig || { columns: [{ label: '' }], rowCount: 1 }),
+              [key]: value
+            }
+          };
+        }
+        return { ...f, [key]: value };
+      }
+      return f;
+    });
     setPages(updatedPages);
   };
 
@@ -176,9 +191,27 @@ export default function ReportFormatBuilder({ onSave, initialFormat }) {
 
     setLoading(true);
     try {
+      // Table field'larında columns ve rowCount'u sadece tableConfig içinde tut
+      const formattedPages = pages.map(page => ({
+        ...page,
+        fields: page.fields.map(field => {
+          if (field.type === "table") {
+            return {
+              ...field,
+              tableConfig: {
+                columns: field.tableConfig?.columns || [],
+                rowCount: field.tableConfig?.rowCount || 1
+              }
+            };
+          } else {
+            const { tableConfig, ...rest } = field;
+            return rest;
+          }
+        })
+      }));
       const format = {
         name: formatName,
-        pages,
+        pages: formattedPages,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       };
@@ -366,13 +399,13 @@ export default function ReportFormatBuilder({ onSave, initialFormat }) {
                   <Input
                     type="number"
                     min="1"
-                    value={selectedField.columns?.length || 1}
+                    value={selectedField.tableConfig?.columns?.length || 1}
                     onChange={e => {
                       const newCount = Math.max(1, parseInt(e.target.value) || 1);
-                      let newColumns = selectedField.columns ? [...selectedField.columns] : [];
+                      let newColumns = selectedField.tableConfig?.columns ? [...selectedField.tableConfig.columns] : [];
                       if (newColumns.length < newCount) {
                         for (let i = newColumns.length; i < newCount; i++) {
-                          newColumns.push({ key: '' });
+                          newColumns.push({ label: '' });
                         }
                       } else if (newColumns.length > newCount) {
                         newColumns = newColumns.slice(0, newCount);
@@ -386,7 +419,7 @@ export default function ReportFormatBuilder({ onSave, initialFormat }) {
                   <Input
                     type="number"
                     min="1"
-                    value={selectedField.rowCount || 1}
+                    value={selectedField.tableConfig?.rowCount || 1}
                     onChange={e => handleFieldChange("rowCount", parseInt(e.target.value) || 1)}
                   />
                 </div>
