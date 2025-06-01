@@ -1,48 +1,49 @@
-'use client'
+"use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { IconEye, IconEyeOff } from "@tabler/icons-react";
 import { api } from "@/lib/api";
 import toast from "react-hot-toast";
 
-export function LoginForm({
-  className,
-  ...props
-}) {
+export function LoginForm({ className, ...props }) {
   const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
-  const [error, setError] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("");
     const email = e.target.email.value;
     const password = e.target.password.value;
+    
     try {
       const res = await api.post("/auth/login", { email, password });
       localStorage.setItem("accessToken", res.accessToken);
       localStorage.setItem("refreshToken", res.refreshToken);
       document.cookie = `token=${res.accessToken}; path=/; max-age=86400`;
-      toast.success("Giriş başarılı!");
+      toast.success("Giriş başarılı!", {
+        position: "top-right",
+        duration: 3000,
+      });
       window.location.href = "/";
     } catch (err) {
-      let errorMsg = "Giriş başarısız.";
+      let errorMsg = "E-posta adresi veya şifre hatalı.";
       if (err?.response?.data?.message === "Invalid credentials") {
         errorMsg = "E-posta adresi veya şifre hatalı.";
       }
-      setError(errorMsg);
-      toast.error(errorMsg);
+      toast.error(errorMsg, {
+        position: "top-right",
+        duration: 3000,
+      });
     }
   };
 
@@ -51,9 +52,9 @@ export function LoginForm({
       <Card>
         <CardHeader>
           <CardTitle className="text-2xl text-center">LOGIN</CardTitle>
-          <div className="flex justify-center py-2">
+          {/*       <div className="flex justify-center py-2">
             <img src="/logo.png" alt="Logo" className="h-20 w-auto" onError={e => { e.target.style.display = 'none'; }} />
-          </div>
+          </div>*/}
           <CardDescription>
             Enter your email below to login to your account
           </CardDescription>
@@ -94,7 +95,6 @@ export function LoginForm({
                   </button>
                 </div>
               </div>
-              {error && <div className="text-red-500 text-sm text-center">{error}</div>}
               <Button type="submit" className="w-full">
                 Login
               </Button>
@@ -103,5 +103,5 @@ export function LoginForm({
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }
